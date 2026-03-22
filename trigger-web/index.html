@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APM Demo Playground</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: #0c0e14;
+      color: #c8cdd8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container { max-width: 620px; width: 100%; }
+
+    h1 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: #eef0f5;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #555d72;
+      margin-bottom: 36px;
+    }
+
+    .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555d72;
+      margin-bottom: 10px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      padding: 14px 16px;
+      border-radius: 6px;
+      border: 1px solid #252836;
+      background: #13161f;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      color: #c8cdd8;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn.loading { opacity: 0.4; pointer-events: none; }
+    .btn-desc { font-size: 11px; color: #555d72; margin-top: 4px; }
+
+    .btn-normal:hover { border-color: #4ade80; }
+    .btn-normal .btn-name { color: #4ade80; }
+    .btn-slow:hover { border-color: #fbbf24; }
+    .btn-slow .btn-name { color: #fbbf24; }
+    .btn-error:hover { border-color: #f87171; }
+    .btn-error .btn-name { color: #f87171; }
+    .btn-burst:hover { border-color: #60a5fa; }
+    .btn-burst .btn-name { color: #60a5fa; }
+
+    .auto-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .auto-row .btn { flex: 1; border-color: #2a2040; }
+    .auto-row .btn .btn-name { color: #a78bfa; }
+    .auto-row .btn:hover { border-color: #a78bfa; }
+    .auto-row .btn.active { border-color: #a78bfa; }
+
+    .interval-box { text-align: center; min-width: 44px; }
+    .interval-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #555d72; margin-bottom: 2px; }
+    .interval-value { font-family: 'IBM Plex Mono', monospace; font-size: 18px; color: #a78bfa; }
+
+    input[type=range] { width: 72px; accent-color: #a78bfa; cursor: pointer; }
+
+    .links { display: flex; flex-direction: column; gap: 8px; }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid #252836;
+      background: #13161f;
+      text-decoration: none;
+      color: #c8cdd8;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .link-btn:hover { border-color: #60a5fa; color: #eef0f5; }
+    .link-btn span { color: #555d72; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a1e2a;
+      border: 1px solid #252836;
+      color: #c8cdd8;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>apm-demo / playground</h1>
+  <p class="subtitle">Trigger requests and watch the results live in Grafana.</p>
+
+  <div class="section-label">Endpoints</div>
+  <div class="btn-group">
+    <button class="btn btn-normal" onclick="hit('normal')">
+      <div class="btn-name">/normal</div>
+      <div class="btn-desc">200 OK · ~10ms</div>
+    </button>
+    <button class="btn btn-slow" onclick="hit('slow')">
+      <div class="btn-name">/slow</div>
+      <div class="btn-desc">200 OK · 2–5s</div>
+    </button>
+    <button class="btn btn-error" onclick="hit('error')">
+      <div class="btn-name">/error</div>
+      <div class="btn-desc">500 Error</div>
+    </button>
+    <button class="btn btn-burst" onclick="hit('burst')">
+      <div class="btn-name">/burst</div>
+      <div class="btn-desc">×10 parallel</div>
+    </button>
+    <button class="btn" id="concurrent-btn" onclick="hitConcurrent()" 
+      style="grid-column: 1/-1; border-color: #1e3a3a;">
+      <div class="btn-name" style="color:#2dd4bf;">×10 concurrent users</div>
+      <div class="btn-desc">10 requests fired simultaneously via Promise.all</div>
+    </button>
+  </div>
+
+  <div class="section-label">Auto Fire</div>
+  <div class="auto-row">
+    <button class="btn" id="auto-btn" onclick="toggleAuto()">
+      <div class="btn-name" id="auto-label">Start</div>
+      <div class="btn-desc">Random mix, all endpoints</div>
+    </button>
+    <div class="interval-box">
+      <div class="interval-label">interval</div>
+      <div class="interval-value" id="interval-display">2s</div>
+    </div>
+    <input type="range" min="1" max="10" value="2" id="interval-range"
+      oninput="autoInterval=this.value*1000;document.getElementById('interval-display').textContent=this.value+'s'" />
+  </div>
+
+  <div class="section-label">Open</div>
+  <div class="links">
+    <a href="http://localhost:3000" target="_blank" class="link-btn">
+      Grafana <span>→</span>
+    </a>
+    <a href="https://github.com/YOUR_USERNAME/apm-demo" target="_blank" class="link-btn">
+      GitHub <span>→</span>
+    </a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.hostname === 'localhost'
+    ? 'http://localhost:8080'
+    : `http://${window.location.hostname}:8080`;
+
+  let autoTimer = null;
+  let autoInterval = 2000;
+  const endpoints = ['normal', 'normal', 'normal', 'slow', 'error', 'burst'];
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  async function hit(endpoint) {
+    const btn = document.querySelector(`.btn-${endpoint}`);
+    if (btn) btn.classList.add('loading');
+    const start = performance.now();
+    try {
+      const res = await fetch(`${API}/${endpoint}`);
+      const ms = Math.round(performance.now() - start);
+      toast(`/${endpoint} → ${res.status} (${ms}ms)`);
+    } catch(e) {
+      toast(`/${endpoint} failed`);
+    } finally {
+      if (btn) btn.classList.remove('loading');
+    }
+  }
+
+  function toggleAuto() {
+    const btn = document.getElementById('auto-btn');
+    const label = document.getElementById('auto-label');
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      label.textContent = 'Start';
+      btn.classList.remove('active');
+    } else {
+      label.textContent = 'Stop';
+      btn.classList.add('active');
+      autoTimer = setInterval(() => {
+        hit(endpoints[Math.floor(Math.random() * endpoints.length)]);
+      }, autoInterval);
+    }
+  }
+
+  async function hitConcurrent() {
+    const btn = document.getElementById('concurrent-btn');
+    btn.classList.add('loading');
+    
+    const promises = Array.from({length: 10}, () => {
+      const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
+      return fetch(`${API}/${ep}`)
+        .then(r => r.status)
+        .catch(() => 'fail');
+    });
+    
+    const results = await Promise.all(promises);
+    const ok = results.filter(s => s === 200).length;
+    const err = results.filter(s => s !== 200).length;
+    toast(`concurrent ×10 → ${ok} ok, ${err} err`);
+    btn.classList.remove('loading');
+  }
+</script>
+</body>
+</html>
