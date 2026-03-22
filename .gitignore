@@ -1,0 +1,15 @@
+# Go binary
+demo-api/demo-api
+
+# Docker volumes (local data)
+prometheus_data/
+loki_data/
+grafana_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+*.env.local
