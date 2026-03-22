@@ -180,13 +180,23 @@
 
   <div class="section-label">Open</div>
   <div class="links">
-    <a href="http://localhost:3000" target="_blank" class="link-btn">
+    <a href="http://jasonapm.duckdns.org:3000" target="_blank" class="link-btn">
       Grafana <span>→</span>
     </a>
-    <a href="https://github.com/YOUR_USERNAME/apm-demo" target="_blank" class="link-btn">
+    <a href="https://github.com/Lexuz17/apm-demo-simple" target="_blank" class="link-btn">
       GitHub <span>→</span>
     </a>
   </div>
+
+  <div class="section-label" style="margin-top:32px">Built by</div>
+    <div class="links">
+      <a href="https://www.linkedin.com/in/jason-susanto/" target="_blank" class="link-btn">
+        LinkedIn — Jason Susanto <span>→</span>
+      </a>
+      <a href="https://github.com/Lexuz17" target="_blank" class="link-btn">
+        GitHub — Lexuz17 <span>→</span>
+      </a>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -243,7 +253,7 @@
     const btn = document.getElementById('concurrent-btn');
     btn.classList.add('loading');
     
-    const promises = Array.from({length: 10}, () => {
+    const promises = Array.from({length: 100}, () => {
       const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
       return fetch(`${API}/${ep}`)
         .then(r => r.status)
